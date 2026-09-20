@@ -48,7 +48,7 @@ endif
 ifeq ($(TARGET_SUPPORT), $(filter $(TARGET_SUPPORT), qrb5165))
 obj-m += asoc/codecs/bolero/
 obj-m += asoc/codecs/wcd938x/
-bj-m += asoc/codecs/wsa883x/
+obj-m += asoc/codecs/wsa883x/
 KBUILD_CFLAGS += -Wno-error
 endif
 ifeq ($(TARGET_SUPPORT), $(filter $(TARGET_SUPPORT), qcs6490))
@@ -125,6 +125,7 @@ all:
 	$(shell cd $(KERNEL_BINARY_DIR) && $(KERNEL_SRC)/scripts/headers_install.sh $(AUDIO_ROOT)/include/uapi/audio/linux/msm_audio_wmapro.h $(UAPI_OUT)/linux/msm_audio_wmapro.h)
 	$(shell cd $(KERNEL_BINARY_DIR) && $(KERNEL_SRC)/scripts/headers_install.sh $(AUDIO_ROOT)/include/uapi/audio/linux/wcd-spi-ac-params.h $(UAPI_OUT)/linux/wcd-spi-ac-params.h)
 	$(shell cd $(KERNEL_BINARY_DIR) && $(KERNEL_SRC)/scripts/headers_install.sh $(AUDIO_ROOT)/include/uapi/audio/linux/mfd/wcd9xxx/wcd9320_registers.h $(UAPI_OUT)/linux/mfd/wcd9xxx/wcd9320_registers.h)
+	$(shell cd $(KERNEL_BINARY_DIR) && $(KERNEL_SRC)/scripts/headers_install.sh $(AUDIO_ROOT)/include/uapi/audio/linux/mfd/wcd9xxx/wcd9340_registers.h $(UAPI_OUT)/linux/mfd/wcd9xxx/wcd9340_registers.h)
 	$(shell cd $(KERNEL_BINARY_DIR) && $(KERNEL_SRC)/scripts/headers_install.sh $(AUDIO_ROOT)/include/uapi/audio/linux/mfd/wcd9xxx/wcd9xxx_registers.h $(UAPI_OUT)/linux/mfd/wcd9xxx/wcd9xxx_registers.h)
 	$(shell cd $(KERNEL_BINARY_DIR) && $(KERNEL_SRC)/scripts/headers_install.sh $(AUDIO_ROOT)/include/uapi/audio/sound/audio_compressed_formats.h $(UAPI_OUT)/sound/audio_compressed_formats.h)
 	$(shell cd $(KERNEL_BINARY_DIR) && $(KERNEL_SRC)/scripts/headers_install.sh $(AUDIO_ROOT)/include/uapi/audio/sound/audio_effects.h $(UAPI_OUT)/sound/audio_effects.h)
