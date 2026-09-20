@@ -3,6 +3,7 @@
  * Copyright (c) 2017-2020, The Linux Foundation. All rights reserved.
  */
 #include <linux/module.h>
+#include <linux/err.h>
 #include <cam_sensor_cmn_header.h>
 #include "cam_sensor_util.h"
 #include "cam_soc_util.h"
@@ -1314,7 +1315,7 @@ int oplus_cam_sensor_update_setting(struct cam_sensor_ctrl_t *s_ctrl)
 int sensor_start_thread(void *arg) {
     struct cam_sensor_ctrl_t *s_ctrl = (struct cam_sensor_ctrl_t *)arg;
     int rc = 0;
-    struct cam_sensor_i2c_reg_setting sensor_init_setting;
+    struct cam_sensor_i2c_reg_setting sensor_init_setting = {0};
     int vendor_id = 0;
 
     if (!s_ctrl)
@@ -1352,29 +1353,33 @@ int sensor_start_thread(void *arg) {
                         0x0018,
                         &vendor_id,s_ctrl->sensordata->id_info.sensor_addr_type,
                         CAMERA_SENSOR_I2C_TYPE_BYTE);
+                if (rc < 0) {
+                    CAM_ERR(CAM_SENSOR, "read imx766 vendor id failed rc=%d", rc);
+                } else {
 
-                if (s_ctrl->adv_powerup_vendor == 0x85) {
-                    sensor_init_setting.reg_setting = sensor_init_settings.imx766_pk_setting.reg_setting;
-                    sensor_init_setting.addr_type = CAMERA_SENSOR_I2C_TYPE_WORD;
-                    sensor_init_setting.data_type = CAMERA_SENSOR_I2C_TYPE_BYTE;
-                    sensor_init_setting.size = sensor_init_settings.imx766_pk_setting.size;
-                    sensor_init_setting.delay = sensor_init_settings.imx766_pk_setting.delay;
-                }
-		else if (s_ctrl->adv_powerup_vendor == 0x17) {
-                    sensor_init_setting.reg_setting = sensor_init_settings.imx766_pb_setting.reg_setting;
-                    sensor_init_setting.addr_type = CAMERA_SENSOR_I2C_TYPE_WORD;
-                    sensor_init_setting.data_type = CAMERA_SENSOR_I2C_TYPE_BYTE;
-                    sensor_init_setting.size = sensor_init_settings.imx766_pb_setting.size;
-                    sensor_init_setting.delay = sensor_init_settings.imx766_pb_setting.delay;
-                }
-                else if (s_ctrl->reg_setting_ver == 8)
-                {
+                    if (s_ctrl->adv_powerup_vendor == 0x85) {
+                        sensor_init_setting.reg_setting = sensor_init_settings.imx766_pk_setting.reg_setting;
+                        sensor_init_setting.addr_type = CAMERA_SENSOR_I2C_TYPE_WORD;
+                        sensor_init_setting.data_type = CAMERA_SENSOR_I2C_TYPE_BYTE;
+                        sensor_init_setting.size = sensor_init_settings.imx766_pk_setting.size;
+                        sensor_init_setting.delay = sensor_init_settings.imx766_pk_setting.delay;
+                    }
+		            else if (s_ctrl->adv_powerup_vendor == 0x17) {
+                        sensor_init_setting.reg_setting = sensor_init_settings.imx766_pb_setting.reg_setting;
+                        sensor_init_setting.addr_type = CAMERA_SENSOR_I2C_TYPE_WORD;
+                        sensor_init_setting.data_type = CAMERA_SENSOR_I2C_TYPE_BYTE;
+                        sensor_init_setting.size = sensor_init_settings.imx766_pb_setting.size;
+                        sensor_init_setting.delay = sensor_init_settings.imx766_pb_setting.delay;
+                    }
+                    else if (s_ctrl->reg_setting_ver == 8)
+                    {
                         sensor_init_setting.reg_setting = sensor_init_settings.imx766_ver8_setting.reg_setting;
                         sensor_init_setting.addr_type = CAMERA_SENSOR_I2C_TYPE_WORD;
                         sensor_init_setting.data_type = CAMERA_SENSOR_I2C_TYPE_BYTE;
                         sensor_init_setting.size = sensor_init_settings.imx766_ver8_setting.size;
-                }
-                else if(vendor_id >=1){
+                        sensor_init_setting.delay = sensor_init_settings.imx766_ver8_setting.delay;
+                    }
+                    else if(vendor_id >=1){
                         if (s_ctrl->adv_powerup_vendor == 0x05) {
                             sensor_init_setting.reg_setting = sensor_init_settings.imx766_mp_setting.reg_setting;
                             sensor_init_setting.addr_type = CAMERA_SENSOR_I2C_TYPE_WORD;
@@ -1402,16 +1407,17 @@ int sensor_start_thread(void *arg) {
                             sensor_init_setting.size = sensor_init_settings.imx766_uw_setting.size;
                             sensor_init_setting.delay = sensor_init_settings.imx766_uw_setting.delay;
                         }
-                }
-                rc = camera_io_dev_write(&(s_ctrl->io_master_info), &sensor_init_setting);
-                if(rc < 0)
-                {
-                    CAM_ERR(CAM_SENSOR, "write vendor_id %d 0x%x setting failed!",
-                        vendor_id, s_ctrl->adv_powerup_vendor);
-                } else {
-                    CAM_INFO(CAM_SENSOR, "write vendor_id %d 0x%x setting1 success!",
-                        vendor_id, s_ctrl->adv_powerup_vendor);
-                    s_ctrl->sensor_initsetting_state = CAM_SENSOR_SETTING_WRITE_SUCCESS;
+                    }
+                    rc = camera_io_dev_write(&(s_ctrl->io_master_info), &sensor_init_setting);
+                    if(rc < 0)
+                    {
+                        CAM_ERR(CAM_SENSOR, "write vendor_id %d 0x%x setting failed!",
+                            vendor_id, s_ctrl->adv_powerup_vendor);
+                    } else {
+                        CAM_INFO(CAM_SENSOR, "write vendor_id %d 0x%x setting1 success!",
+                            vendor_id, s_ctrl->adv_powerup_vendor);
+                        s_ctrl->sensor_initsetting_state = CAM_SENSOR_SETTING_WRITE_SUCCESS;
+                    }
                 }
 
             }
@@ -1422,34 +1428,43 @@ int sensor_start_thread(void *arg) {
                         0x0018,
                         &vendor_id,s_ctrl->sensordata->id_info.sensor_addr_type,
                         CAMERA_SENSOR_I2C_TYPE_BYTE);
-                CAM_INFO(CAM_SENSOR, "write sensor vendor = 0x%x!",vendor_id);
-                if((vendor_id >> 4) == 1)
-                {
+                if (rc < 0) {
+                    CAM_ERR(CAM_SENSOR, "read imx789 vendor id failed rc=%d", rc);
+                } else {
+                    CAM_INFO(CAM_SENSOR, "write sensor vendor = 0x%x!",vendor_id);
+                    if((vendor_id >> 4) == 1)
+                    {
                         sensor_init_setting.reg_setting = sensor_init_settings.imx789_settingMP.reg_setting;
                         sensor_init_setting.addr_type = CAMERA_SENSOR_I2C_TYPE_WORD;
                         sensor_init_setting.data_type = CAMERA_SENSOR_I2C_TYPE_BYTE;
                         sensor_init_setting.size = sensor_init_settings.imx789_settingMP.size;
                         sensor_init_setting.delay = sensor_init_settings.imx789_settingMP.delay;
 
-                }
-                else if((vendor_id >> 4) == 0)
-                {
+                    }
+                    else if((vendor_id >> 4) == 0)
+                    {
                         sensor_init_setting.reg_setting = sensor_init_settings.imx789_setting.reg_setting;
                         sensor_init_setting.addr_type = CAMERA_SENSOR_I2C_TYPE_WORD;
                         sensor_init_setting.data_type = CAMERA_SENSOR_I2C_TYPE_BYTE;
                         sensor_init_setting.size = sensor_init_settings.imx789_setting.size;
                         sensor_init_setting.delay = sensor_init_settings.imx789_setting.delay;
-                }
+                    } else {
+                        rc = -EINVAL;
+                        CAM_ERR(CAM_SENSOR, "unsupported imx789 vendor id 0x%x", vendor_id);
+                    }
 
-                rc = camera_io_dev_write(&(s_ctrl->io_master_info), &sensor_init_setting);
-                if(rc < 0)
-                {
-                    CAM_ERR(CAM_SENSOR, "write setting failed!");
-                }
-                else
-                {
-                    CAM_INFO(CAM_SENSOR, "write setting success!");
-                    s_ctrl->sensor_initsetting_state = CAM_SENSOR_SETTING_WRITE_SUCCESS;
+                    if (!rc) {
+                        rc = camera_io_dev_write(&(s_ctrl->io_master_info), &sensor_init_setting);
+                        if(rc < 0)
+                        {
+                            CAM_ERR(CAM_SENSOR, "write setting failed!");
+                        }
+                        else
+                        {
+                            CAM_INFO(CAM_SENSOR, "write setting success!");
+                            s_ctrl->sensor_initsetting_state = CAM_SENSOR_SETTING_WRITE_SUCCESS;
+                        }
+                    }
                 }
             }
             else if(s_ctrl->sensordata->slave_info.sensor_id == 0x689)
@@ -1467,22 +1482,21 @@ int sensor_start_thread(void *arg) {
                 else
                 {
                     CAM_INFO(CAM_SENSOR, "write setting1 success!");
-                    s_ctrl->sensor_initsetting_state = CAM_SENSOR_SETTING_WRITE_SUCCESS;
-                }
-                sensor_init_setting.reg_setting = sensor_init_settings.imx689_setting1.reg_setting;
-                sensor_init_setting.addr_type = CAMERA_SENSOR_I2C_TYPE_WORD;
-                sensor_init_setting.data_type = CAMERA_SENSOR_I2C_TYPE_BYTE;
-                sensor_init_setting.size = sensor_init_settings.imx689_setting1.size;
-                sensor_init_setting.delay = sensor_init_settings.imx689_setting1.delay;
-                rc = camera_io_dev_write(&(s_ctrl->io_master_info), &sensor_init_setting);
-                if(rc < 0)
-                {
-                    CAM_ERR(CAM_SENSOR, "write setting failed!");
-                }
-                else
-                {
-                    CAM_INFO(CAM_SENSOR, "write setting success!");
-                    s_ctrl->sensor_initsetting_state = CAM_SENSOR_SETTING_WRITE_SUCCESS;
+                    sensor_init_setting.reg_setting = sensor_init_settings.imx689_setting1.reg_setting;
+                    sensor_init_setting.addr_type = CAMERA_SENSOR_I2C_TYPE_WORD;
+                    sensor_init_setting.data_type = CAMERA_SENSOR_I2C_TYPE_BYTE;
+                    sensor_init_setting.size = sensor_init_settings.imx689_setting1.size;
+                    sensor_init_setting.delay = sensor_init_settings.imx689_setting1.delay;
+                    rc = camera_io_dev_write(&(s_ctrl->io_master_info), &sensor_init_setting);
+                    if(rc < 0)
+                    {
+                        CAM_ERR(CAM_SENSOR, "write setting failed!");
+                    }
+                    else
+                    {
+                        CAM_INFO(CAM_SENSOR, "write setting success!");
+                        s_ctrl->sensor_initsetting_state = CAM_SENSOR_SETTING_WRITE_SUCCESS;
+                    }
                 }
 
             }
@@ -1513,9 +1527,10 @@ int cam_sensor_start(struct cam_sensor_ctrl_t *s_ctrl) {
     if(s_ctrl->sensor_power_state == CAM_SENSOR_POWER_OFF)
     {
         s_ctrl->sensor_open_thread = kthread_run(sensor_start_thread, s_ctrl, s_ctrl->device_name);
-        if (!s_ctrl->sensor_open_thread) {
-            CAM_ERR(CAM_SENSOR, "create sensor start thread failed");
-            rc = -1;
+        if (IS_ERR(s_ctrl->sensor_open_thread)) {
+            rc = PTR_ERR(s_ctrl->sensor_open_thread);
+            s_ctrl->sensor_open_thread = NULL;
+            CAM_ERR(CAM_SENSOR, "create sensor start thread failed rc=%d", rc);
         }
         else
         {
@@ -1559,4 +1574,3 @@ int cam_sensor_stop(struct cam_sensor_ctrl_t *s_ctrl) {
     mutex_unlock(&(s_ctrl->cam_sensor_mutex));
     return rc;
 }
-
