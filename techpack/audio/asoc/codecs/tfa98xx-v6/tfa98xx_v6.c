@@ -147,9 +147,14 @@ static int pcm_sample_format = 0;
 module_param(pcm_sample_format, int, S_IRUGO);
 MODULE_PARM_DESC(pcm_sample_format, "PCM sample format: 0=S16_LE, 1=S24_LE, 2=S32_LE\n");
 
-static int pcm_no_constraint = 1;
+/*
+ * Default to the active TFA container profile's supported rates so ALSA
+ * cannot negotiate a rate with no matching smart-amplifier firmware profile.
+ */
+static int pcm_no_constraint;
 module_param(pcm_no_constraint, int, S_IRUGO);
-MODULE_PARM_DESC(pcm_no_constraint, "do not use constraints for PCM parameters\n");
+MODULE_PARM_DESC(pcm_no_constraint,
+	"PCM constraints: 0=enforce active TFA profile rates (default), 1=disable constraints for diagnostics\n");
 
 static void tfa98xx_tapdet_check_update(struct tfa98xx *tfa98xx);
 static int tfa98xx_get_fssel(unsigned int rate);
@@ -5252,4 +5257,3 @@ module_exit(tfa98xx_i2c_exit);
 
 MODULE_DESCRIPTION("ASoC TFA98XX driver");
 MODULE_LICENSE("GPL");
-
