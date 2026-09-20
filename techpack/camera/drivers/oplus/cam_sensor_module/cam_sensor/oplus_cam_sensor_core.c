@@ -1356,67 +1356,77 @@ int sensor_start_thread(void *arg) {
                 if (rc < 0) {
                     CAM_ERR(CAM_SENSOR, "read imx766 vendor id failed rc=%d", rc);
                 } else {
+                    bool imx766_table_selected = false;
 
                     if (s_ctrl->adv_powerup_vendor == 0x85) {
-                        sensor_init_setting.reg_setting = sensor_init_settings.imx766_pk_setting.reg_setting;
-                        sensor_init_setting.addr_type = CAMERA_SENSOR_I2C_TYPE_WORD;
-                        sensor_init_setting.data_type = CAMERA_SENSOR_I2C_TYPE_BYTE;
-                        sensor_init_setting.size = sensor_init_settings.imx766_pk_setting.size;
-                        sensor_init_setting.delay = sensor_init_settings.imx766_pk_setting.delay;
-                    }
-		            else if (s_ctrl->adv_powerup_vendor == 0x17) {
-                        sensor_init_setting.reg_setting = sensor_init_settings.imx766_pb_setting.reg_setting;
-                        sensor_init_setting.addr_type = CAMERA_SENSOR_I2C_TYPE_WORD;
-                        sensor_init_setting.data_type = CAMERA_SENSOR_I2C_TYPE_BYTE;
-                        sensor_init_setting.size = sensor_init_settings.imx766_pb_setting.size;
-                        sensor_init_setting.delay = sensor_init_settings.imx766_pb_setting.delay;
-                    }
-                    else if (s_ctrl->reg_setting_ver == 8)
-                    {
-                        sensor_init_setting.reg_setting = sensor_init_settings.imx766_ver8_setting.reg_setting;
-                        sensor_init_setting.addr_type = CAMERA_SENSOR_I2C_TYPE_WORD;
-                        sensor_init_setting.data_type = CAMERA_SENSOR_I2C_TYPE_BYTE;
-                        sensor_init_setting.size = sensor_init_settings.imx766_ver8_setting.size;
-                        sensor_init_setting.delay = sensor_init_settings.imx766_ver8_setting.delay;
-                    }
-                    else if(vendor_id >=1){
-                        if (s_ctrl->adv_powerup_vendor == 0x05) {
-                            sensor_init_setting.reg_setting = sensor_init_settings.imx766_mp_setting.reg_setting;
+                            sensor_init_setting.reg_setting = sensor_init_settings.imx766_pk_setting.reg_setting;
                             sensor_init_setting.addr_type = CAMERA_SENSOR_I2C_TYPE_WORD;
                             sensor_init_setting.data_type = CAMERA_SENSOR_I2C_TYPE_BYTE;
-                            sensor_init_setting.size = sensor_init_settings.imx766_mp_setting.size;
-                            sensor_init_setting.delay = sensor_init_settings.imx766_mp_setting.delay;
-                        }else{
-                            sensor_init_setting.reg_setting = sensor_init_settings.imx766_uw_mp_setting.reg_setting;
+                            sensor_init_setting.size = sensor_init_settings.imx766_pk_setting.size;
+                            sensor_init_setting.delay = sensor_init_settings.imx766_pk_setting.delay;
+                            imx766_table_selected = true;
+                    } else if (s_ctrl->adv_powerup_vendor == 0x17) {
+                            sensor_init_setting.reg_setting = sensor_init_settings.imx766_pb_setting.reg_setting;
                             sensor_init_setting.addr_type = CAMERA_SENSOR_I2C_TYPE_WORD;
                             sensor_init_setting.data_type = CAMERA_SENSOR_I2C_TYPE_BYTE;
-                            sensor_init_setting.size = sensor_init_settings.imx766_uw_mp_setting.size;
-                            sensor_init_setting.delay = sensor_init_settings.imx766_uw_mp_setting.delay;
-                        }
-                }else if(vendor_id < 1){
-                        if (s_ctrl->adv_powerup_vendor == 0x05) {
-                            sensor_init_setting.reg_setting = sensor_init_settings.imx766_mp_setting.reg_setting;
+                            sensor_init_setting.size = sensor_init_settings.imx766_pb_setting.size;
+                            sensor_init_setting.delay = sensor_init_settings.imx766_pb_setting.delay;
+                            imx766_table_selected = true;
+                    } else if (s_ctrl->reg_setting_ver == 8) {
+                            sensor_init_setting.reg_setting = sensor_init_settings.imx766_ver8_setting.reg_setting;
                             sensor_init_setting.addr_type = CAMERA_SENSOR_I2C_TYPE_WORD;
                             sensor_init_setting.data_type = CAMERA_SENSOR_I2C_TYPE_BYTE;
-                            sensor_init_setting.size = sensor_init_settings.imx766_mp_setting.size;
-                            sensor_init_setting.delay = sensor_init_settings.imx766_mp_setting.delay;
-                        }else{
-                            sensor_init_setting.reg_setting = sensor_init_settings.imx766_uw_setting.reg_setting;
-                            sensor_init_setting.addr_type = CAMERA_SENSOR_I2C_TYPE_WORD;
-                            sensor_init_setting.data_type = CAMERA_SENSOR_I2C_TYPE_BYTE;
-                            sensor_init_setting.size = sensor_init_settings.imx766_uw_setting.size;
-                            sensor_init_setting.delay = sensor_init_settings.imx766_uw_setting.delay;
-                        }
+                            sensor_init_setting.size = sensor_init_settings.imx766_ver8_setting.size;
+                            sensor_init_setting.delay = sensor_init_settings.imx766_ver8_setting.delay;
+                            imx766_table_selected = true;
+                    } else if(vendor_id >=1) {
+                            if (s_ctrl->adv_powerup_vendor == 0x05) {
+                                sensor_init_setting.reg_setting = sensor_init_settings.imx766_mp_setting.reg_setting;
+                                sensor_init_setting.addr_type = CAMERA_SENSOR_I2C_TYPE_WORD;
+                                sensor_init_setting.data_type = CAMERA_SENSOR_I2C_TYPE_BYTE;
+                                sensor_init_setting.size = sensor_init_settings.imx766_mp_setting.size;
+                                sensor_init_setting.delay = sensor_init_settings.imx766_mp_setting.delay;
+                                imx766_table_selected = true;
+                            } else {
+                                sensor_init_setting.reg_setting = sensor_init_settings.imx766_uw_mp_setting.reg_setting;
+                                sensor_init_setting.addr_type = CAMERA_SENSOR_I2C_TYPE_WORD;
+                                sensor_init_setting.data_type = CAMERA_SENSOR_I2C_TYPE_BYTE;
+                                sensor_init_setting.size = sensor_init_settings.imx766_uw_mp_setting.size;
+                                sensor_init_setting.delay = sensor_init_settings.imx766_uw_mp_setting.delay;
+                                imx766_table_selected = true;
+                            }
+                    } else if(vendor_id < 1) {
+                            if (s_ctrl->adv_powerup_vendor == 0x05) {
+                                sensor_init_setting.reg_setting = sensor_init_settings.imx766_mp_setting.reg_setting;
+                                sensor_init_setting.addr_type = CAMERA_SENSOR_I2C_TYPE_WORD;
+                                sensor_init_setting.data_type = CAMERA_SENSOR_I2C_TYPE_BYTE;
+                                sensor_init_setting.size = sensor_init_settings.imx766_mp_setting.size;
+                                sensor_init_setting.delay = sensor_init_settings.imx766_mp_setting.delay;
+                                imx766_table_selected = true;
+                            } else {
+                                sensor_init_setting.reg_setting = sensor_init_settings.imx766_uw_setting.reg_setting;
+                                sensor_init_setting.addr_type = CAMERA_SENSOR_I2C_TYPE_WORD;
+                                sensor_init_setting.data_type = CAMERA_SENSOR_I2C_TYPE_BYTE;
+                                sensor_init_setting.size = sensor_init_settings.imx766_uw_setting.size;
+                                sensor_init_setting.delay = sensor_init_settings.imx766_uw_setting.delay;
+                                imx766_table_selected = true;
+                            }
                     }
-                    rc = camera_io_dev_write(&(s_ctrl->io_master_info), &sensor_init_setting);
-                    if(rc < 0)
-                    {
-                        CAM_ERR(CAM_SENSOR, "write vendor_id %d 0x%x setting failed!",
-                            vendor_id, s_ctrl->adv_powerup_vendor);
+                    if (!imx766_table_selected) {
+                            rc = -EINVAL;
+                            CAM_ERR(CAM_SENSOR, "unsupported imx766 vendor id %d adv vendor 0x%x",
+                                vendor_id, s_ctrl->adv_powerup_vendor);
                     } else {
-                        CAM_INFO(CAM_SENSOR, "write vendor_id %d 0x%x setting1 success!",
-                            vendor_id, s_ctrl->adv_powerup_vendor);
-                        s_ctrl->sensor_initsetting_state = CAM_SENSOR_SETTING_WRITE_SUCCESS;
+                            rc = camera_io_dev_write(&(s_ctrl->io_master_info), &sensor_init_setting);
+                            if(rc < 0)
+                            {
+                                CAM_ERR(CAM_SENSOR, "write vendor_id %d 0x%x setting failed!",
+                                    vendor_id, s_ctrl->adv_powerup_vendor);
+                            } else {
+                                CAM_INFO(CAM_SENSOR, "write vendor_id %d 0x%x setting1 success!",
+                                    vendor_id, s_ctrl->adv_powerup_vendor);
+                                s_ctrl->sensor_initsetting_state = CAM_SENSOR_SETTING_WRITE_SUCCESS;
+                            }
                     }
                 }
 
